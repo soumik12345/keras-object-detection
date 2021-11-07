@@ -1,4 +1,5 @@
 .idea/
 venv/
+dataset/
 **pycache**
 **ipynb_checkpoints**

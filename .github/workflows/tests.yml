@@ -1,0 +1,17 @@
+name: Run tests
+on:
+  pull_request:
+    paths:
+      - .github/**
+      - keras_object_detection/**
+      - tests.py
+      - requirements.txt
+jobs:
+  run-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - run: |
+          pip install -U pip
+          pip install -r requirements.txt
+          pytest tests.py -s
