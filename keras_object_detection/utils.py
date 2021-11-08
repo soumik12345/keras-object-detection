@@ -1,7 +1,7 @@
 import os
 import json
-from typing import Dict
 from absl import logging
+from typing import Dict, List
 
 
 def make_directory(dir_path):
@@ -19,3 +19,10 @@ def load_json_as_dict(json_file_path) -> Dict:
     with open(json_file_path, "r") as handle:
         loaded_dictionary = json.loads(handle.read())
     return loaded_dictionary
+
+
+def split_list(given_list: List, chunk_size: int) -> List:
+    return [
+        given_list[offs : offs + chunk_size]
+        for offs in range(0, len(given_list), chunk_size)
+    ]

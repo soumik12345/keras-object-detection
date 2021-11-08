@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 from skimage.io import imsave, imread
 
 from ..base import BenchMark
+from ..tfrecord import TFrecordWriter
 from .utils import convert_box, draw_boxes
 
 from keras_object_detection import utils
@@ -29,6 +30,10 @@ class ShapesBenchMark(BenchMark):
 
     def __len__(self):
         return len(self.dataset)
+
+    def set_label_map(self):
+        super().set_label_map()
+        self.label_map = {"circle": 0, "rectangle": 1}
 
     def _draw_circle(self, rgb_canvas, trials=1):
         if trials > 100:
@@ -133,3 +138,15 @@ class ShapesBenchMark(BenchMark):
             plt.figure(figsize=(8, 6))
             plt.imshow(image)
             plt.axis("off")
+
+    def create_tfrecords(
+        self, val_split: float = 0.2, samples_per_shard: int = 64, *args, **kwargs
+    ):
+        tfrecord_writer = TFrecordWriter(
+            self.images_dir, self.dataset, self.label_map, prefix=self.dataset_name
+        )
+        tfrecord_writer.write_tfrecords(
+            val_split,
+            samples_per_shard,
+            output_dir=os.path.join(self.data_dir, "tfrecords"),
+        )
