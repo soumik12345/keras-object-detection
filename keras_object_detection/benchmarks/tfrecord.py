@@ -55,7 +55,7 @@ class TFrecordWriter:
                 self.prefix, split, lower_limit, upper_limit
             )
             lower_limit += samples_per_shard
-            upper_limit += samples_per_shard
+            upper_limit += len(image_shard)
             with tf.io.TFRecordWriter(os.path.join(dump_dir, file_name)) as writer:
                 for sample_index in tqdm(range(len(image_shard))):
                     image = self._read_image(
