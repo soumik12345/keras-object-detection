@@ -9,7 +9,6 @@ on:
 jobs:
   run-tests:
     runs-on: ubuntu-latest
-    container: fbcotter/docker-tensorflow-opencv
     steps:
       - uses: actions/checkout@v2
       - run: |
