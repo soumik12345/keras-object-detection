@@ -1,3 +1,21 @@
+"""ShapesBenchmark class.
+
+Benchmark for the auto-generated dataset for detection
+of Rectangular and Circular shapes.
+
+Typical usage example:
+
+```python
+shapes_benchmark = ShapesBenchMark(height, width, dataset_name, dump_dir)
+shapes_benchmark.set_label_map()
+shapes_benchmark.make_dataset(n_data_samples)
+print(f"Dataset Length: {len(shapes_benchmark)}")
+shapes_benchmark.plot_samples()
+shapes_benchmark.create_tfrecords()
+```
+"""
+
+
 import os
 from tqdm import tqdm
 from absl import logging
@@ -33,6 +51,7 @@ class ShapesBenchMark(BenchMark):
         return len(self.dataset)
 
     def set_label_map(self):
+        """Initialize the Label Map for the Benchmark"""
         super().set_label_map()
         self.label_map = {"circle": 0, "rectangle": 1}
 
@@ -92,6 +111,16 @@ class ShapesBenchMark(BenchMark):
         *args,
         **kwargs
     ):
+        """Generate the Shapes Dataset.
+
+        Generates random images cantaining rectangular and circular shapes
+        and respective bounding box annotations.
+
+        Args:
+            max_objects_per_image: Maximum number of objects per images.
+            n_data_samples: Total number of images to be generated.
+            dump_dir: Directory path for dumping the images and annotations.
+        """
         super().make_dataset(dump_dir=dump_dir, *args, **kwargs)
         logging.info("Generating Dataset...")
         for i in tqdm(range(n_data_samples)):
@@ -120,6 +149,13 @@ class ShapesBenchMark(BenchMark):
         return super().get_dataset(*args, **kwargs)
 
     def plot_samples(self, n_samples: int = 5, *args, **kwargs):
+        """Plot shapes samples.
+
+        Plot a certain number of sample images along with corresponding bounding boxes.
+
+        Args:
+            n_samples: Number of samples to be plotted.
+        """
         super().plot_samples(*args, **kwargs)
         items = (
             list(
@@ -144,11 +180,23 @@ class ShapesBenchMark(BenchMark):
     def create_tfrecords(
         self, val_split: float = 0.2, samples_per_shard: int = 64, *args, **kwargs
     ):
+        """Create TFRecord files corresponding to the generated shape images and annotations.
+
+        Args:
+            val_split: Validation Split.
+            samples_per_shard: Number of data samples per shard.
+
+        Returns:
+            Directory path containing the TFRecord split directories
+            consisting of the corresponding TFRecord files.
+        """
+        tfrecord_dir = os.path.join(self.data_dir, "tfrecords")
         tfrecord_writer = TFrecordWriter(
             self.images_dir, self.dataset, self.label_map, prefix=self.dataset_name
         )
         tfrecord_writer.write_tfrecords(
             val_split,
             samples_per_shard,
-            output_dir=os.path.join(self.data_dir, "tfrecords"),
+            output_dir=tfrecord_dir,
         )
+        return tfrecord_dir

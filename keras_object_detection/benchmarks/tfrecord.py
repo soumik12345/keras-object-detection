@@ -4,12 +4,14 @@ The TFRecordWriter class can be used to generate TFRecord files from a dataset.
 
 Typical usage example:
 
+```python
 tfrecord_writer = TFrecordWriter(
     images_dir, dataset, label_map, prefix=dataset_name
 )
 tfrecord_writer.write_tfrecords(
     val_split, samples_per_shard, output_dir
 )
+```
 """
 
 
@@ -27,7 +29,7 @@ class TFrecordWriter:
     """TFRecord writer class.
 
     The TFRecordWriter class can be used to generate TFRecord files from a dataset.
-    
+
     Attributes:
         images_dir: Directory path containing images.
         annotations: Annotation dictionary.
