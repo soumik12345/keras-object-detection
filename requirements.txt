@@ -4,7 +4,6 @@ matplotlib
 opencv-python==4.5.4.58
 pytest==6.2.5
 scikit-image==0.18.3
-tensorflow==2.7.0
 tensorflow-addons==0.14.0
 tensorflow-datasets==4.4.0
 tqdm==4.62.3
