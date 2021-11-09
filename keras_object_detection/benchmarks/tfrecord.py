@@ -1,3 +1,18 @@
+"""TFRecord writer class.
+
+The TFRecordWriter class can be used to generate TFRecord files from a dataset.
+
+Typical usage example:
+
+tfrecord_writer = TFrecordWriter(
+    images_dir, dataset, label_map, prefix=dataset_name
+)
+tfrecord_writer.write_tfrecords(
+    val_split, samples_per_shard, output_dir
+)
+"""
+
+
 import os
 import numpy as np
 from tqdm import tqdm
@@ -9,6 +24,17 @@ from keras_object_detection import utils
 
 
 class TFrecordWriter:
+    """TFRecord writer class.
+
+    The TFRecordWriter class can be used to generate TFRecord files from a dataset.
+    
+    Attributes:
+        images_dir: Directory path containing images.
+        annotations: Annotation dictionary.
+        label_map: Dictonary mapping labels to indices.
+        prefix: Prefix for TFRecord file names.
+    """
+
     def __init__(
         self,
         images_dir,
@@ -16,7 +42,7 @@ class TFrecordWriter:
         label_map: Dict,
         prefix: str = "",
         *args,
-        **kwargs
+        **kwargs,
     ):
         super().__init__(*args, **kwargs)
         self.images_dir = images_dir
@@ -58,7 +84,7 @@ class TFrecordWriter:
             lower_limit += samples_per_shard
             upper_limit += len(image_shard)
             logging.info(f"Shard Size: {len(image_shard)}")
-            logging.info(f'Writing {file_name}...')
+            logging.info(f"Writing {file_name}...")
             with tf.io.TFRecordWriter(os.path.join(dump_dir, file_name)) as writer:
                 for sample_index in tqdm(range(len(image_shard))):
                     image = self._read_image(
@@ -75,7 +101,17 @@ class TFrecordWriter:
 
     def write_tfrecords(
         self, val_split: float = 0.2, samples_per_shard: int = 64, output_dir: str = ""
-    ):
+    ) -> None:
+        """Fetches rows from a Smalltable.
+
+        Retrieves rows pertaining to the given keys from the Table instance
+        represented by table_handle.  String keys will be UTF-8 encoded.
+
+        Args:
+            val_split: Validation split.
+            samples_per_shard: Number of data samples per shard.
+            output_dir: Directory that contains the tfrecord files.
+        """
         utils.make_directory(output_dir)
         all_images = list(self.annotations.keys())
         split_index = int(len(all_images) * (1 - val_split))
