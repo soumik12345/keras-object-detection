@@ -2,6 +2,7 @@ import os
 import numpy as np
 from tqdm import tqdm
 import tensorflow as tf
+from absl import logging
 from typing import List, Dict
 
 from keras_object_detection import utils
@@ -56,6 +57,8 @@ class TFrecordWriter:
             )
             lower_limit += samples_per_shard
             upper_limit += len(image_shard)
+            logging.info(f"Shard Size: {len(image_shard)}")
+            logging.info(f'Writing {file_name}...')
             with tf.io.TFRecordWriter(os.path.join(dump_dir, file_name)) as writer:
                 for sample_index in tqdm(range(len(image_shard))):
                     image = self._read_image(
@@ -77,10 +80,13 @@ class TFrecordWriter:
         all_images = list(self.annotations.keys())
         split_index = int(len(all_images) * (1 - val_split))
         train_images = all_images[:split_index]
+        print(f"Num train files: {len(train_images)}")
+        logging.info("Writing Train TFRecords...")
         self._write_tfrecords_with_labels(
             train_images, samples_per_shard, output_dir, "train"
         )
         val_images = all_images[split_index:]
+        logging.info("Writing Validation TFRecords...")
         self._write_tfrecords_with_labels(
             val_images, samples_per_shard, output_dir, "val"
         )

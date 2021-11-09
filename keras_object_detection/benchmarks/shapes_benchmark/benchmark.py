@@ -1,5 +1,6 @@
 import os
 from tqdm import tqdm
+from absl import logging
 
 import cv2
 import numpy as np
@@ -92,6 +93,7 @@ class ShapesBenchMark(BenchMark):
         **kwargs
     ):
         super().make_dataset(dump_dir=dump_dir, *args, **kwargs)
+        logging.info("Generating Dataset...")
         for i in tqdm(range(n_data_samples)):
             image_name = "{}.png".format(i)
             objects = []
