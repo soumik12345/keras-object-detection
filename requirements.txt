@@ -1,7 +1,6 @@
 black==21.10b0
 jupyter==1.0.0
 matplotlib
-opencv-python==4.5.4.58
 pytest==6.2.5
 scikit-image==0.18.3
 tensorflow-addons==0.14.0
