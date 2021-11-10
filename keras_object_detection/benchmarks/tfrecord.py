@@ -28,7 +28,7 @@ from keras_object_detection import utils
 class TFrecordWriter:
     """TFRecord writer class.
 
-    The TFRecordWriter class can be used to generate TFRecord files from a dataset.
+    The TFrecordWriter class can be used to generate TFRecord files from a dataset.
 
     Attributes:
         images_dir: Directory path containing images.
@@ -52,7 +52,8 @@ class TFrecordWriter:
         self.prefix = prefix
         self.label_map = label_map
 
-    def _make_example(self, image, boxes, labels):
+    @staticmethod
+    def make_example(image, boxes, labels):
         feature = {
             "image": tf.train.Feature(bytes_list=tf.train.BytesList(value=[image])),
             "xmins": tf.train.Feature(float_list=tf.train.FloatList(value=boxes[:, 0])),
@@ -63,10 +64,29 @@ class TFrecordWriter:
         }
         return tf.train.Example(features=tf.train.Features(feature=feature))
 
-    def _read_image(self, image_path):
+    @staticmethod
+    def read_image(image_path):
         with tf.io.gfile.GFile(image_path, "rb") as fp:
             image = fp.read()
         return image
+
+    @staticmethod
+    def _write_single_shard(
+        tfrecord_file, image_shard, images_dir, annotations, label_map
+    ):
+        with tf.io.TFRecordWriter(tfrecord_file) as writer:
+            for sample_index in tqdm(range(len(image_shard))):
+                image = TFrecordWriter.read_image(
+                    os.path.join(images_dir, image_shard[sample_index])
+                )
+                boxes, labels = [], []
+                for obj in annotations[image_shard[sample_index]]:
+                    boxes.append(obj["box"])
+                    labels.append(label_map[obj["category"]])
+                boxes = np.array(boxes, dtype=np.float32)
+                labels = np.array(labels, dtype=np.int32)
+                example = TFrecordWriter.make_example(image, boxes, labels)
+                writer.write(example.SerializeToString())
 
     def _write_tfrecords_with_labels(
         self, images: List, samples_per_shard: int, output_dir, split: str
@@ -87,19 +107,13 @@ class TFrecordWriter:
             upper_limit += len(image_shard)
             logging.info(f"Shard Size: {len(image_shard)}")
             logging.info(f"Writing {file_name}...")
-            with tf.io.TFRecordWriter(os.path.join(dump_dir, file_name)) as writer:
-                for sample_index in tqdm(range(len(image_shard))):
-                    image = self._read_image(
-                        os.path.join(self.images_dir, image_shard[sample_index])
-                    )
-                    boxes, labels = [], []
-                    for obj in self.annotations[image_shard[sample_index]]:
-                        boxes.append(obj["box"])
-                        labels.append(self.label_map[obj["category"]])
-                    boxes = np.array(boxes, dtype=np.float32)
-                    labels = np.array(labels, dtype=np.int32)
-                    example = self._make_example(image, boxes, labels)
-                    writer.write(example.SerializeToString())
+            self._write_single_shard(
+                os.path.join(dump_dir, file_name),
+                image_shard,
+                self.images_dir,
+                self.annotations,
+                self.label_map,
+            )
 
     def write_tfrecords(
         self, val_split: float = 0.2, samples_per_shard: int = 64, output_dir: str = ""
