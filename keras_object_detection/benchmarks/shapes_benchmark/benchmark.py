@@ -73,7 +73,10 @@ class ShapesBenchMark(BenchMark):
         colors = [[255, 0, 0], [0, 255, 0], [0, 0, 255]]
         color = list(colors[np.random.randint(0, 3)])
         x1, y1, x2, y2 = map(
-            int, box_utils.convert_box([x, y, 2 * radius, 2 * radius], out_format="x1y1x2y2")
+            int,
+            box_utils.convert_box(
+                [x, y, 2 * radius, 2 * radius], out_format="x1y1x2y2"
+            ),
         )
         return cv2.circle(
             rgb_canvas, center=(x, y), radius=radius, color=color, thickness=-1
@@ -90,7 +93,9 @@ class ShapesBenchMark(BenchMark):
         w = int(np.random.randint(low=min_dim, high=max_dim)) / 2
         x = int(np.random.randint(low=w + 1, high=(self.width - w - 1)))
         y = int(np.random.randint(low=h + 1, high=(self.height - h - 1)))
-        x1, y1, x2, y2 = map(int, box_utils.convert_box([x, y, w, h], out_format="x1y1x2y2"))
+        x1, y1, x2, y2 = map(
+            int, box_utils.convert_box([x, y, w, h], out_format="x1y1x2y2")
+        )
         new_canvas = np.zeros_like(canvas)
         new_canvas = cv2.rectangle(
             new_canvas, pt1=(x1, y1), pt2=(x2, y2), color=1, thickness=-1

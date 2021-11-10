@@ -132,12 +132,13 @@ class TFrecordWriter:
         all_images = list(self.annotations.keys())
         split_index = int(len(all_images) * (1 - val_split))
         train_images = all_images[:split_index]
-        print(f"Num train files: {len(train_images)}")
+        logging.info(f"Num train files: {len(train_images)}")
         logging.info("Writing Train TFRecords...")
         self._write_tfrecords_with_labels(
             train_images, samples_per_shard, output_dir, "train"
         )
         val_images = all_images[split_index:]
+        logging.info(f"Num val files: {len(val_images)}")
         logging.info("Writing Validation TFRecords...")
         self._write_tfrecords_with_labels(
             val_images, samples_per_shard, output_dir, "val"
