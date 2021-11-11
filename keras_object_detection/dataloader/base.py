@@ -1,8 +1,11 @@
 import os
 from typing import List
+import matplotlib.pyplot as plt
 from abc import ABC, abstractmethod
 
 import tensorflow as tf
+
+from ..utils import box_utils
 
 
 class DataLoader(ABC):
@@ -85,12 +88,28 @@ class DataLoader(ABC):
     #     label = self.make_label(boxes, classes)
     #     return image, label
 
+    @staticmethod
+    def run_dataset_sanity_check(dataset, label_map):
+        for image, boxes, class_ids in dataset.take(1):
+            classes = [
+                {
+                    v: k for k, v in label_map.items()
+                }[int(x)] for x in class_ids.numpy()
+            ]
+            plot = box_utils.draw_boxes(
+                image.numpy(), boxes.numpy(), classes
+            )
+            plt.figure(figsize=(8, 6))
+            plt.imshow(plot)
+            plt.axis('off')
+
     def build_dataset(
         self,
         cycle_length: int = 4,
         block_length: int = 16,
         buffer_size: int = 512,
         is_train: bool = False,
+        label_map=None
     ):
         tfrecords = self.train_tfrecords if is_train else self.val_tfrecords
         dataset = tfrecords.interleave(
@@ -103,4 +122,11 @@ class DataLoader(ABC):
         dataset = dataset.map(
             self._preprocess_image, num_parallel_calls=tf.data.AUTOTUNE
         )
+        for augmentation_fn in self.augmentation_functions:
+            dataset = dataset.map(augmentation_fn, num_parallel_calls=tf.data.AUTOTUNE)
+        if self.run_sanity_checks:
+            if label_map is not None:
+                DataLoader.run_dataset_sanity_check(dataset, label_map)
+            else:
+                print('Unable to run sanity check, please pass a valid label map')
         return dataset

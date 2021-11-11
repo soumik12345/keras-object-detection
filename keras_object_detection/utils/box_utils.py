@@ -55,7 +55,7 @@ def draw_boxes(image, boxes, categories):
             5,
             lineType=cv2.LINE_AA,
         )
-        img = cv2.putText(
+        visualization_image = cv2.putText(
             image,
             text,
             text_orig,
@@ -65,7 +65,7 @@ def draw_boxes(image, boxes, categories):
             1,
             lineType=cv2.LINE_AA,
         )
-        img = cv2.rectangle(
+        visualization_image = cv2.rectangle(
             image, (_box[0], _box[1]), (_box[2], _box[3]), [0, 0, 0], 1
         )
-    return img
+    return visualization_image
