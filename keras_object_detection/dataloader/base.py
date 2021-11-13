@@ -16,6 +16,7 @@ class DataLoader(ABC):
         grid_size: int = 7,
         stride: int = 64,
         n_boxes_per_grid: int = 2,
+        predictions_per_cell: int = 2,
         n_classes: int = 2,
         run_sanity_checks: bool = False,
     ) -> None:
@@ -25,6 +26,7 @@ class DataLoader(ABC):
         self.grid_size = grid_size
         self.stride = stride
         self.n_boxes_per_grid = n_boxes_per_grid
+        self.predictions_per_cell = predictions_per_cell
         self.n_classes = n_classes
         self.augmentation_functions = []
         self.run_sanity_checks = run_sanity_checks
@@ -75,41 +77,38 @@ class DataLoader(ABC):
         labels = tf.sparse.to_dense(parsed_example["labels"])
         return image, boxes, labels
 
-    # @abstractmethod
-    # def make_label(self, boxes, labels):
-    #     pass
+    @abstractmethod
+    def preprocess_outputs(self, boxes, labels):
+        pass
 
     def _preprocess_image(self, example_proto):
         image, boxes, classes = self.parse_example(example_proto)
         image = (image - 127.5) / 127.5
         return image, boxes, classes
 
-    # def parse_fn(self, image, boxes, classes):
-    #     label = self.make_label(boxes, classes)
-    #     return image, label
+    def parse_fn(self, image, boxes, classes):
+        label = self.preprocess_outputs(boxes, classes)
+        return image, label
 
     @staticmethod
     def run_dataset_sanity_check(dataset, label_map):
         for image, boxes, class_ids in dataset.take(1):
             classes = [
-                {
-                    v: k for k, v in label_map.items()
-                }[int(x)] for x in class_ids.numpy()
+                {v: k for k, v in label_map.items()}[int(x)] for x in class_ids.numpy()
             ]
-            plot = box_utils.draw_boxes(
-                image.numpy(), boxes.numpy(), classes
-            )
+            plot = box_utils.draw_boxes(image.numpy(), boxes.numpy(), classes)
             plt.figure(figsize=(8, 6))
             plt.imshow(plot)
-            plt.axis('off')
+            plt.axis("off")
 
     def build_dataset(
         self,
         cycle_length: int = 4,
         block_length: int = 16,
         buffer_size: int = 512,
+        batch_size: int = 8,
         is_train: bool = False,
-        label_map=None
+        label_map=None,
     ):
         tfrecords = self.train_tfrecords if is_train else self.val_tfrecords
         dataset = tfrecords.interleave(
@@ -128,5 +127,7 @@ class DataLoader(ABC):
             if label_map is not None:
                 DataLoader.run_dataset_sanity_check(dataset, label_map)
             else:
-                print('Unable to run sanity check, please pass a valid label map')
+                print("Unable to run sanity check, please pass a valid label map")
+        dataset = dataset.map(self.parse_fn, num_parallel_calls=tf.data.AUTOTUNE)
+        dataset = dataset.batch(batch_size)
         return dataset

@@ -2,7 +2,8 @@ import os
 import unittest
 from glob import glob
 
-from keras_object_detection import benchmarks
+from keras_object_detection import benchmarks, dataloader
+from keras_object_detection.dataloader import augmentations
 
 
 class ShapesBenchMarkTester(unittest.TestCase):
@@ -26,3 +27,15 @@ class ShapesBenchMarkTester(unittest.TestCase):
     def test_shapes_tfrecords(self):
         assert len(glob(os.path.join(self.tfrecord_dir, "train/*"))) > 0
         assert len(glob(os.path.join(self.tfrecord_dir, "val/*"))) > 0
+
+    def test_yolo_v1_data_loader(self):
+        data_loader = dataloader.YOLOv1DataLoader(
+            dataset_path=self.tfrecord_dir, run_sanity_checks=True
+        )
+        data_loader.add_augmentation(augmentations.random_flip_data)
+        train_dataset = data_loader.build_dataset(
+            is_train=False, label_map=self.shapes_benchmark.label_map
+        )
+        x, y = next(iter(train_dataset))
+        assert x.shape == (8, 448, 448, 3)
+        assert y.shape == (8, 7, 7, 12)
