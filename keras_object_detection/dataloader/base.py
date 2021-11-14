@@ -14,7 +14,6 @@ class DataLoader(ABC):
         dataset_path,
         image_size: int = 448,
         grid_size: int = 7,
-        stride: int = 64,
         n_boxes_per_grid: int = 2,
         predictions_per_cell: int = 2,
         n_classes: int = 2,
@@ -24,7 +23,7 @@ class DataLoader(ABC):
         self.dataset_path = dataset_path
         self.image_size = image_size
         self.grid_size = grid_size
-        self.stride = stride
+        self.stride = image_size // grid_size,
         self.n_boxes_per_grid = n_boxes_per_grid
         self.predictions_per_cell = predictions_per_cell
         self.n_classes = n_classes
