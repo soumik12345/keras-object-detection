@@ -1,5 +1,22 @@
 import cv2
 import numpy as np
+import tensorflow as tf
+
+
+def convert_to_xywh(boxes):
+    x = (1 + boxes[..., 0] + boxes[..., 2]) / 2.0
+    y = (1 + boxes[..., 1] + boxes[..., 3]) / 2.0
+    w = 1 + boxes[..., 2] - boxes[..., 0]
+    h = 1 + boxes[..., 3] - boxes[..., 1]
+    return tf.stack([x, y, w, h], axis=-1)
+
+
+def convert_to_x1y1x2y2(boxes):
+    x1 = boxes[..., 0] - boxes[..., 2] / 2.0
+    y1 = boxes[..., 1] - boxes[..., 3] / 2.0
+    x2 = (boxes[..., 0] + boxes[..., 2] / 2.0) - 1
+    y2 = (boxes[..., 1] + boxes[..., 3] / 2.0) - 1
+    return tf.stack([x1, y1, x2, y2], axis=-1)
 
 
 def convert_box(box, out_format):
@@ -38,7 +55,7 @@ def draw_boxes(image, boxes, categories):
             5,
             lineType=cv2.LINE_AA,
         )
-        img = cv2.putText(
+        visualization_image = cv2.putText(
             image,
             text,
             text_orig,
@@ -48,7 +65,7 @@ def draw_boxes(image, boxes, categories):
             1,
             lineType=cv2.LINE_AA,
         )
-        img = cv2.rectangle(
-            image, (_box[0], _box[1]), (_box[2], _box[3]), [30, 15, 30], 1
+        visualization_image = cv2.rectangle(
+            image, (_box[0], _box[1]), (_box[2], _box[3]), [0, 0, 0], 1
         )
-    return img
+    return visualization_image

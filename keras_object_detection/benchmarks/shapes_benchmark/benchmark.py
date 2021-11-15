@@ -27,9 +27,9 @@ from skimage.io import imsave, imread
 
 from ..base import BenchMark
 from ..tfrecord import TFrecordWriter
-from .utils import convert_box, draw_boxes
 
 from keras_object_detection import utils
+from keras_object_detection.utils import box_utils
 
 
 class ShapesBenchMark(BenchMark):
@@ -73,7 +73,10 @@ class ShapesBenchMark(BenchMark):
         colors = [[255, 0, 0], [0, 255, 0], [0, 0, 255]]
         color = list(colors[np.random.randint(0, 3)])
         x1, y1, x2, y2 = map(
-            int, convert_box([x, y, 2 * radius, 2 * radius], out_format="x1y1x2y2")
+            int,
+            box_utils.convert_box(
+                [x, y, 2 * radius, 2 * radius], out_format="x1y1x2y2"
+            ),
         )
         return cv2.circle(
             rgb_canvas, center=(x, y), radius=radius, color=color, thickness=-1
@@ -90,7 +93,9 @@ class ShapesBenchMark(BenchMark):
         w = int(np.random.randint(low=min_dim, high=max_dim)) / 2
         x = int(np.random.randint(low=w + 1, high=(self.width - w - 1)))
         y = int(np.random.randint(low=h + 1, high=(self.height - h - 1)))
-        x1, y1, x2, y2 = map(int, convert_box([x, y, w, h], out_format="x1y1x2y2"))
+        x1, y1, x2, y2 = map(
+            int, box_utils.convert_box([x, y, w, h], out_format="x1y1x2y2")
+        )
         new_canvas = np.zeros_like(canvas)
         new_canvas = cv2.rectangle(
             new_canvas, pt1=(x1, y1), pt2=(x2, y2), color=1, thickness=-1
@@ -172,7 +177,7 @@ class ShapesBenchMark(BenchMark):
                 boxes.append(obj["box"])
                 categories.append(obj["category"])
             image = imread(os.path.join(self.images_dir, image_path))
-            image = draw_boxes(image, boxes, categories)
+            image = box_utils.draw_boxes(image, boxes, categories)
             plt.figure(figsize=(8, 6))
             plt.imshow(image)
             plt.axis("off")
