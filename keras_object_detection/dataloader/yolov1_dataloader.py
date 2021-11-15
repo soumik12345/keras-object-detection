@@ -1,3 +1,20 @@
+"""ShapesBenchmark class.
+
+YOLOv1 DataLoader Scheme. Reference: https://arxiv.org/abs/1506.02640
+
+Typical usage example:
+
+```python
+data_loader = YOLOv1DataLoader(
+    dataset_path=tfrecord_dir, run_sanity_checks=True
+)
+data_loader.add_augmentation(augmentations.random_flip_data)
+train_dataset = data_loader.build_dataset(
+    is_train=True, label_map=shapes_benchmark.label_map
+)
+```
+"""
+
 import tensorflow as tf
 
 from .base import DataLoader
@@ -27,6 +44,14 @@ class YOLOv1DataLoader(DataLoader):
         self.output_dim = self.predictions_per_cell * 5 + self.n_classes
 
     def preprocess_outputs(self, boxes, labels):
+        """Target preprocessing scheme for YOLOv1.
+
+        Reference: https://arxiv.org/abs/1506.02640
+
+        Args:
+            boxes: Bounding Boxes.
+            labels: Bounding Box Labels.
+        """
         boxes = tf.cast(boxes, dtype=tf.float32)
         boxes_xywh = box_utils.convert_to_xywh(boxes)
         classes = tf.one_hot(labels, depth=self.n_classes, dtype=tf.float32)
